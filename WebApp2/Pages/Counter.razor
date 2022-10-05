@@ -1,0 +1,30 @@
+﻿@inject LocalStorage _localStorage
+
+@page "/counter"
+
+<h1>@Data.Translations.Translate("Counter", language)</h1>
+
+<p>@Data.Translations.Translate("Current count", language): @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">@Data.Translations.Translate("click_me", language)</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+    
+    private string language = "en-US";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) 
+    {
+        if (firstRender)
+        {
+            language = await _localStorage.GetItem<string>("language"); // get selected language
+        }
+        // flush changes
+        StateHasChanged();
+    }
+}

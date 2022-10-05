@@ -1,0 +1,65 @@
+﻿@inject IJSRuntime _jsRuntime
+@inject NavigationManager _navigationManager
+@inject LocalStorage _localStorage
+
+@inherits LayoutComponentBase
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        @*<a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>*@
+        <select @onchange="changeLanguage">
+            @foreach (var language in Languages.Names)
+            {
+                if (selectedLanguage.Equals(language.Key))
+                {
+                    <option value="@language.Key" selected>@language.Value</option>
+                }
+                else
+                {
+                    <option value="@language.Key">@language.Value</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="content px-4 @textDirection">
+        @Body
+    </div>
+</div>
+
+@code {
+    private string selectedLanguage = "en-US";
+    private string textDirection = "ltr"; 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) 
+    {
+        if (firstRender)
+        {
+            selectedLanguage = await _localStorage.GetItem<string>("language"); // get selected language
+            selectedLanguage = string.IsNullOrWhiteSpace(selectedLanguage) ? "en-US" : selectedLanguage;
+            textDirection = Languages.TextDirections[selectedLanguage]; // set text direction
+            // override layout
+            await _jsRuntime.InvokeVoidAsync("setLayout", selectedLanguage, textDirection); 
+        }
+        // flush changes
+        StateHasChanged();
+    }
+
+    async void changeLanguage(ChangeEventArgs e)
+    {
+        // store language
+        selectedLanguage = e.Value.ToString();
+        await _localStorage.SetItem("language", selectedLanguage);
+        // store text direction
+        textDirection = Languages.TextDirections[selectedLanguage];
+        await _localStorage.SetItem("textDirection", textDirection);
+        // override layout
+        await _jsRuntime.InvokeVoidAsync("setLayout", selectedLanguage, textDirection);
+        // refresh page
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+}

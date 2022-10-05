@@ -1,0 +1,58 @@
+﻿@inject WeatherForecastService ForecastService
+@inject LocalStorage _localStorage
+
+@page "/fetchdata"
+
+<h1>@Data.Translations.Translate("Weather forecast", language)</h1>
+
+@*<p>This component demonstrates fetching data from a service.</p>*@
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@Data.Translations.Translate("Date", language)</th>
+                <th>@Data.Translations.Translate("temp_c", language)</th>
+                <th>@Data.Translations.Translate("temp_f", language)</th>
+                <th>@Data.Translations.Translate("Summary", language)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+    
+    private string language = "en-US";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) 
+    {
+        if (firstRender)
+        {
+            language = await _localStorage.GetItem<string>("language"); // get selected language
+        }
+        // flush changes
+        StateHasChanged();
+    }
+}

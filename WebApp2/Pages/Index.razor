@@ -1,0 +1,23 @@
+﻿@inject LocalStorage _localStorage
+
+@page "/"
+
+<h1>@Data.Translations.Translate("Hello, world!", language)</h1>
+
+@Data.Translations.Translate("Welcome to your new app.", language)
+
+<SurveyPrompt Title="@Data.Translations.Translate("how_was_blazor", language)" />
+
+@code {
+    private string language = "en-US";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) 
+    {
+        if (firstRender)
+        {
+            language = await _localStorage.GetItem<string>("language"); // get selected language
+        }
+        // flush changes
+        StateHasChanged();
+    }
+}
